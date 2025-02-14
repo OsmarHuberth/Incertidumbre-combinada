@@ -1,0 +1,30 @@
+-Ingrese la cantidad de medidas realizadas: 9 (Luego de ingresar dar enter o click en OK)
+-Ingrese la cantidad de variables: 3 (Luego de ingresar dar enter o click en OK)
+-¿Desea trabajar con una única resolución para todas las variables?: Colocar "s" 
+si la respuesta es *sí* y colocar "n" si es "no" (Luego de ingresar dar enter o click en OK)
+
+-Ingrese la lista de valores para variable X1 separados por comas:
+#  0.3, 0.4, 0.4, 0.5, 0.5, 0.4, 0.4, 0.3, 0.4 (COPIAR Y PEGAR ESTO EN EL CAMPO)
+
+
+-Ingrese el valor de la resolución para X1:
+#  res(x1)=0.1 (COPIAR Y PEGAR ESTO EN EL CAMPO)
+
+
+-Ingrese la lista de valores para variable X2 separados por comas:
+#  120.45, 121.55, 120.60, 121.55, 120.40, 121.55, 120.45, 121.40, 120.56 (COPIAR Y PEGAR ESTO EN EL CAMPO)
+
+
+-Ingrese el valor de la resolución para X2:
+#  res(x2)=0.01 (COPIAR Y PEGAR ESTO EN EL CAMPO)
+
+
+-Ingrese la lista de valores para variable X3 separados por comas:
+#  40.45, 41.23, 40.55, 40.23, 41.22, 41.12, 40.68, 40.89, 40.95 (COPIAR Y PEGAR ESTO EN EL CAMPO)
+
+-Ingrese el valor de la resolución para X3:
+#  res(x3)=0.01 (COPIAR Y PEGAR ESTO EN EL CAMPO)
+
+
+-Ingrese una función en términos de X1,X2, y X3:
+#función= 0.5*x3*((x2)**2)*x1 (COPIAR Y PEGAR ESTO EN EL CAMPO)

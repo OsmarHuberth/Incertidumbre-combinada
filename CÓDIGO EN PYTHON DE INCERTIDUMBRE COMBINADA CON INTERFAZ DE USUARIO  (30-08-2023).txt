@@ -1,0 +1,123 @@
+import numpy as np
+import sympy as sp
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+
+def calcular_incertidumbre_combinada():
+    try:
+        # Ingreso de datos de usuario
+        N = int(simpledialog.askstring("Input", "Ingrese la cantidad de medidas realizadas: "))
+        if N <= 1:
+            raise ValueError("La cantidad de medidas debe ser mayor a 1")
+
+        M = int(simpledialog.askstring("Input", "Ingrese la cantidad de variables: "))
+        if M <= 1:
+            raise ValueError("La cantidad de variables debe ser mayor a 1")
+
+        
+
+        # Inicializar contenedores de datos
+        datos = {}
+        resoluciones = {}
+        promedios = {}
+        covarianzas = {}
+        u_a = {}
+        u_b = {}
+        derivadas_evaluadas = {}
+
+        # Ingreso de la decisión sobre la resolución
+        resolucion_unica = simpledialog.askstring("Input", "¿Desea trabajar con una única resolución para todas las variables? (s/n): ").strip().lower()
+        if resolucion_unica not in ['s', 'n']:
+            raise ValueError("Respuesta inválida. Ingrese 's' o 'n'.")
+
+        resolucion_comun = None
+        if resolucion_unica == 's':
+            resolucion_comun = float(simpledialog.askstring("Input", "Ingrese el valor de la resolución común:"))
+
+        # Recolección de datos y cálculo de incertidumbres
+        for i in range(1, M+1):
+            valores = simpledialog.askstring("Input", f"Ingrese la lista de valores para la variable X{i} separados por comas: ")
+            datos[f'var{i}'] = np.array([float(x) for x in valores.split(',')])
+
+            if resolucion_unica == 'n':
+                resoluciones[f'var{i}'] = float(simpledialog.askstring("Input", f"Ingrese el valor de la resolución para X{i}: "))
+            else:
+                resoluciones[f'var{i}'] = resolucion_comun
+
+            # Cálculo de promedios y incertidumbres
+            promedios[f'var{i}'] =round(np.mean(datos[f'var{i}']),2)
+
+            # Calcular la incertidumbre de tipo A para cada variable
+            u_a[f'var{i}'] = round(np.sqrt(np.sum((datos[f'var{i}'] - promedios[f'var{i}']) ** 2)) / (N - 1),4)
+
+            # Calcular la incertidumbre de tipo B para cada variable
+            u_b[f'var{i}'] = round(np.sqrt((u_a[f'var{i}'])**2 + (resoluciones[f'var{i}']/ np.sqrt(3))**2),5)
+ 
+        # Función del usuario
+        variables = sp.symbols(' '.join([f'x{i}' for i in range(1, M+1)]))
+        expresion_funcion = simpledialog.askstring("Input", f"Ingrese una función en términos de {', '.join([str(v) for v in variables])}: ")
+        f = sp.sympify(expresion_funcion)
+        derivadas = [sp.diff(f, var) for var in variables]
+        promedios_sympy = {variables[i]: promedios[f'var{i+1}'] for i in range(M)}
+        derivadas_evaluadas = [round(deriv.evalf(subs=promedios_sympy), 1) for deriv in derivadas]
+
+        # Cálculo de covarianzas y de la incertidumbre combinada
+        u_combinada_cuadrado_1 = sum((deriv**2 * (u_b[f'var{i}']**2)) for i, deriv in enumerate(derivadas_evaluadas, 1))
+        u_combinada_cuadrado_2 = 0
+
+        for i in range(1, M):
+            for j in range(i+1, M+1):
+                sumatoria = np.sum((datos[f'var{i}'] - promedios[f'var{i}']) * (datos[f'var{j}'] - promedios[f'var{j}']))
+                covarianzas[(i, j)] = round(sumatoria / ((N - 1)*N), 5)
+
+                u_combinada_cuadrado_2 += covarianzas.get((i, j), 0) * derivadas_evaluadas[i-1] * derivadas_evaluadas[j-1]
+
+        u_combinada_no_c = sp.sqrt(u_combinada_cuadrado_1)
+        u_combinada_c = sp.sqrt(u_combinada_cuadrado_1 + u_combinada_cuadrado_2)
+
+        # # Imprimir el resultado final
+        # messagebox.showinfo("Resultado", f"Incertidumbre combinada de la función SI las variables fueran NO CORRELACIONADAS: {round(u_combinada_no_c.evalf(), 2)}")
+        # messagebox.showinfo("Resultado", f"Incertidumbre combinada de la función para variables CORRELACIONADAS: {round(u_combinada_c.evalf(), 2)}")
+
+        resultado_final = ""
+        resultado_final += f"Incertidumbre combinada de la función SI las variables fueran NO CORRELACIONADAS: {round(u_combinada_no_c.evalf(), 2)}\n"
+        resultado_final += f"Incertidumbre combinada de la función para variables CORRELACIONADAS: {round(u_combinada_c.evalf(), 2)}\n"
+
+        # Imprimir el resultado final en una sola ventana
+        messagebox.showinfo("Resultado Final", resultado_final)
+
+
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+
+# ... el resto del código para la interfaz Tkinter ...
+def centrar_ventana(ventana):
+    ventana.update_idletasks()
+    ancho = ventana.winfo_width()
+    alto = ventana.winfo_height()
+    x = (ventana.winfo_screenwidth() // 2) - (ancho // 2)
+    y = (ventana.winfo_screenheight() // 2) - (alto // 2)
+    ventana.geometry('{}x{}+{}+{}'.format(ancho, alto, x, y))
+
+def main():
+    # Crear una ventana principal
+    root = tk.Tk()
+    root.title("Calculadora de Incertidumbre Combinada")
+
+    # Configuración de estilo y colores
+    root.configure(bg='#f0f0f0')
+    root.geometry("600x300")
+
+    # Crear un botón para calcular la incertidumbre combinada
+    calcular_button = tk.Button(root, text="Calcular Incertidumbre Combinada", command=calcular_incertidumbre_combinada, bg='#4f8a8b', fg='white', padx=20, pady=10)
+    calcular_button.pack(expand=True)
+
+    # Centrar la ventana principal en la pantalla
+    centrar_ventana(root)
+
+    # Iniciar el bucle principal de la ventana
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
+
